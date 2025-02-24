@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Halftone Effect</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="canvas-area">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div class="settings-panel">
+            <div class="panel-content">
+                <div class="file-uploads">
+                    <div class="upload-box">
+                        <label for="fileUpload">Main Image</label>
+                        <input type="file" id="fileUpload">
+                    </div>
+                    <div class="upload-box">
+                        <label for="secondaryUpload">Secondary Image</label>
+                        <input type="file" id="secondaryUpload">
+                    </div>
+                </div>
+                <button id="swapButton">Swap Images</button><br>
+
+                <div class="input-group">
+                    <label for="imageWidth">Image Width (px):</label>
+                    <input type="number" id="imageWidth" value="500">
+                </div><br>
+
+                <div class="input-group">
+                    <label for="gridSize">Grid Size:</label>
+                    <input type="number" id="gridSize" value="10">
+                </div><br>
+
+
+                <label for="brightness">Brightness:</label>
+                <input type="range" id="brightness" min="-100" max="100" value="0"><br>
+                <label for="contrast">Contrast:</label>
+                <input type="range" id="contrast" min="-100" max="100" value="0"><br>
+                <label for="gamma">Gamma:</label>
+                <input type="range" id="gamma" min="0.1" max="3" step="0.1" value="1"><br>
+                <label for="blur">Blur:</label>
+                <input type="range" id="blur" min="0" max="5" step="0.5" value="0"><br>
+                <button id="invertButton">Invert Halftone</button><br>
+
+
+                <label for="dotScale">Dot Scale:</label>
+                <input type="range" id="dotScale" min="0.5" max="2" step="0.1" value="1"><br>
+
+                <label for="gradientMode">Coloring Mode:</label>
+                <select id="gradientMode">
+                    <option value="dotLuminance">Luminance</option>
+                    <option value="imgFill">Image Fill</option>
+                    <option value="secondary">Secondary Image</option>
+                    <option value="randomNoise">Random Noise</option>
+                    <option value="checkered">Checkered</option>
+                    <option value="gradientX">Gradient X</option>
+                    <option value="gradientY">Gradient Y</option>
+                </select><br>
+
+                <button id="exportSVG">Export as SVG</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
