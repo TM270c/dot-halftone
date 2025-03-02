@@ -1,71 +1,550 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Halftone Effect</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Halftone Studio - Dark Edition</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #121212;
+      --bg-secondary: #1e1e1e;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --accent: #2d88ff;
+      --border: #333333;
+      --button-bg: #2a2a2a;
+      --button-hover: #3a3a3a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header styles */
+    .header {
+      padding: 12px 20px;
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .title-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    /* Main layout */
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .canvas-container {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--bg-primary);
+      padding: 16px;
+    }
+
+    #canvas {
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* Settings panel */
+    .settings-panel {
+      width: 300px;
+      background-color: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-section {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Remove border for the last panel section (GIF preview) */
+    .panel-section:last-child {
+      border-bottom: none;
+    }
+
+    .panel-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    /* Form elements */
+    input[type="text"] {
+      padding: 4px 8px;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .btn-uniform, 
+    .custom-file-button {
+      background-color: var(--button-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .btn-uniform {
+      padding: 4px 8px;
+      margin: 0 4px;
+    }
+
+    .btn-uniform:hover,
+    .custom-file-button:hover {
+      background-color: var(--button-hover);
+    }
+
+    /* File inputs */
+    .file-input-group {
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .fps-display {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .custom-file-input {
+      position: relative;
+      display: block;
+      cursor: pointer;
+    }
+
+    .custom-file-button {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      text-align: center;
+    }
+
+    .custom-file-input input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Sliders */
+    .slider-group {
+      margin-bottom: 16px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .slider-value {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      -webkit-appearance: none;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Dropdowns */
+    select {
+      width: 100%;
+      padding: 8px 12px;
+      background-color: var(--button-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e0e0e0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px top 50%;
+      background-size: 10px auto;
+      cursor: pointer;
+    }
+
+    /* Gradient controls */
+    .gradient-container {
+      margin-top: 10px;
+    }
+
+    .gradient-slider {
+      position: relative;
+      height: 20px;
+      background: linear-gradient(to right, red, yellow, blue);
+      cursor: pointer;
+      border-radius: 4px;
+      overflow: visible; 
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .color-stop {
+      position: absolute;
+      top: -4px;
+      width: 12px;
+      height: 28px;
+      border: 2px solid #fff;
+      border-radius: 2px;
+      cursor: pointer;
+      transform: translateX(-50%);
+    }
+
+    .color-stop.active {
+      border-color: var(--accent);
+    }
+
+    .color-tools {
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+      gap: 8px;
+      justify-content: space-between;
+    }
+
+    #colorPicker {
+      height: 28px;
+      width: 28px;
+      padding: 0;
+      border: 1px solid var(--border);
+      background: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    /* Checkbox */
+    .checkbox-group {
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    /* GIF Canvas */
+    #gifCanvas {
+      width: 200px;
+      height: 200px;
+      display: block;
+      margin: 0 auto;
+      background-color: #000;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="canvas-area">
-            <canvas id="canvas"></canvas>
-        </div>
-        <div class="settings-panel">
-            <div class="panel-content">
-                <div class="file-uploads">
-                    <div class="upload-box">
-                        <label for="fileUpload">Main Image</label>
-                        <input type="file" id="fileUpload">
-                    </div>
-                    <div class="upload-box">
-                        <label for="secondaryUpload">Secondary Image</label>
-                        <input type="file" id="secondaryUpload">
-                    </div>
-                </div>
-                <button id="swapButton">Swap Images</button><br>
-
-                <div class="input-group">
-                    <label for="imageWidth">Image Width (px):</label>
-                    <input type="number" id="imageWidth" value="500">
-                </div><br>
-
-                <div class="input-group">
-                    <label for="gridSize">Grid Size:</label>
-                    <input type="number" id="gridSize" value="10">
-                </div><br>
-
-
-                <label for="brightness">Brightness:</label>
-                <input type="range" id="brightness" min="-100" max="100" value="0"><br>
-                <label for="contrast">Contrast:</label>
-                <input type="range" id="contrast" min="-100" max="100" value="0"><br>
-                <label for="gamma">Gamma:</label>
-                <input type="range" id="gamma" min="0.1" max="3" step="0.1" value="1"><br>
-                <label for="blur">Blur:</label>
-                <input type="range" id="blur" min="0" max="5" step="0.5" value="0"><br>
-                <button id="invertButton">Invert Halftone</button><br>
-
-
-                <label for="dotScale">Dot Scale:</label>
-                <input type="range" id="dotScale" min="0.5" max="2" step="0.1" value="1"><br>
-
-                <label for="gradientMode">Coloring Mode:</label>
-                <select id="gradientMode">
-                    <option value="dotLuminance">Luminance</option>
-                    <option value="imgFill">Image Fill</option>
-                    <option value="secondary">Secondary Image</option>
-                    <option value="randomNoise">Random Noise</option>
-                    <option value="checkered">Checkered</option>
-                    <option value="gradientX">Gradient X</option>
-                    <option value="gradientY">Gradient Y</option>
-                </select><br>
-
-                <button id="exportSVG">Export as SVG</button>
-            </div>
-        </div>
+  <div class="header">
+    <div class="title-container">
+      <div class="title">Halftone Studio</div>
+      <input type="text" id="scaleVideoUrl" placeholder="Scale Video URL" />
+      <input type="text" id="colorVideoUrl" placeholder="Color Video URL" />
+      <button id="loadVideoUrls" class="btn-uniform">Load Videos</button>
     </div>
+    <button id="exportSVG" class="btn-uniform">Export SVG</button>
+  </div>
 
-    <script src="script.js"></script>
+  <div class="main-container">
+    <div class="canvas-container">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="settings-panel">
+      <!-- Media Panel -->
+      <div class="panel-section">
+        <h3 class="panel-title">Media</h3>
+        <!-- Scale Media -->
+        <div class="file-input-group">
+          <div class="file-input-label">
+            <span>Scale Media</span>
+            <span class="fps-display" id="scaleFPS">FPS: --</span>
+            <button id="removeScaleMedia" class="btn-uniform" title="Remove Scale">×</button>
+          </div>
+          <label class="custom-file-input">
+            <span class="custom-file-button">Choose file</span>
+            <input type="file" id="scaleMediaFile" accept="video/*, image/*" />
+          </label>
+        </div>
+        <!-- Color Media -->
+        <div class="file-input-group">
+          <div class="file-input-label">
+            <span>Color Media</span>
+            <span class="fps-display" id="colorFPS">FPS: --</span>
+            <button id="removeColorMedia" class="btn-uniform" title="Remove Color">×</button>
+          </div>
+          <label class="custom-file-input">
+            <span class="custom-file-button">Choose file</span>
+            <input type="file" id="colorMediaFile" accept="video/*, image/*" />
+          </label>
+        </div>
+        <!-- Dot Shape (SVG) -->
+        <div class="file-input-group">
+          <div class="file-input-label">
+            <span>Dot Shape (SVG)</span>
+            <button id="removeDotShape" class="btn-uniform" title="Remove Dot Shape">×</button>
+          </div>
+          <label class="custom-file-input">
+            <span class="custom-file-button">Choose file</span>
+            <input type="file" id="dotShapeFile" accept=".svg" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Swap & Reset Buttons -->
+      <div class="panel-section" style="text-align: center;">
+        <button id="swapMedia" class="btn-uniform">Swap Media</button>
+        <button id="reset" class="btn-uniform">Reset</button>
+      </div>
+
+      <!-- Image Adjustments -->
+      <div class="panel-section">
+        <h3 class="panel-title">Image Adjustments</h3>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Brightness</span>
+            <span class="slider-value" id="brightnessValue">0</span>
+          </div>
+          <input type="range" id="brightness" min="-100" max="100" value="0" />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Contrast</span>
+            <span class="slider-value" id="contrastValue">0</span>
+          </div>
+          <input type="range" id="contrast" min="-128" max="128" value="0" />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Gamma</span>
+            <span class="slider-value" id="gammaValue">1.0</span>
+          </div>
+          <input type="range" id="gamma" min="0.1" max="5" step="0.1" value="1" />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Smoothing (Box Blur)</span>
+            <span class="slider-value" id="smoothingValue">0</span>
+          </div>
+          <input type="range" id="smoothing" min="0" max="3" step="0.1" value="0" />
+        </div>
+      </div>
+
+      <!-- Halftone Options -->
+      <div class="panel-section">
+        <h3 class="panel-title">Halftone Options</h3>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Cell Size</span>
+            <span class="slider-value" id="cellSizeValue">10</span>
+          </div>
+          <input type="range" id="cellSize" min="5" max="50" step="1" value="10" />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Dot Scale</span>
+            <span class="slider-value" id="dotScaleValue">1.0</span>
+          </div>
+          <input type="range" id="dotScale" min="0.1" max="5" step="0.1" value="1" />
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Dithering</span>
+          </div>
+          <select id="ditherType">
+            <option value="None">None</option>
+            <option value="FloydSteinberg">Floyd-Steinberg</option>
+            <option value="Ordered">Ordered</option>
+            <option value="Noise">Noise</option>
+          </select>
+        </div>
+        <div class="slider-group checkbox-group">
+          <label>
+            <input type="checkbox" id="invertScale" />
+            Invert Scale Image
+          </label>
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Hue Shift</span>
+            <span class="slider-value" id="hueValue">0°</span>
+          </div>
+          <input type="range" id="hue" min="-180" max="180" step="1" value="0" />
+        </div>
+      </div>
+
+      <!-- Color & Gradient -->
+      <div class="panel-section">
+        <h3 class="panel-title">Color & Gradient</h3>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Color Mode</span>
+          </div>
+          <select id="colorMode">
+            <option value="gradientX">Gradient X</option>
+            <option value="gradientY">Gradient Y</option>
+            <option value="gradientLum1">Scale Luminance</option>
+            <option value="gradientLum2">Color Luminance</option>
+            <option value="imageSecondary">Image Color</option>
+            <option value="noise">Random Noise</option>
+            <option value="checkered">Checkered</option>
+          </select>
+        </div>
+        <div id="gradientContainer" class="gradient-container">
+          <div class="gradient-slider" id="gradientSlider"></div>
+          <div class="color-tools">
+            <input type="color" id="colorPicker" disabled />
+            <button id="removeStopBtn" class="btn-uniform" title="Remove Stop">Remove Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GIF Canvas - Removed title and modified to have no border -->
+      <div class="panel-section">
+        <canvas id="gifCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Update slider value displays
+    const sliders = ['brightness', 'contrast', 'gamma', 'smoothing', 'cellSize', 'dotScale'];
+    sliders.forEach(id => {
+      document.getElementById(id).addEventListener('input', function() {
+        document.getElementById(id + 'Value').textContent = this.value;
+      });
+    });
+    
+    // Special case for hue slider
+    document.getElementById('hue').addEventListener('input', function() {
+      document.getElementById('hueValue').textContent = this.value + "°";
+    });
+    
+    // Update file input labels
+    const fileInputs = ['scaleMediaFile', 'colorMediaFile', 'dotShapeFile'];
+    fileInputs.forEach(id => {
+      document.getElementById(id).addEventListener('change', function() {
+        this.previousElementSibling.textContent = this.files[0] ? this.files[0].name : 'Choose file';
+      });
+    });
+    
+    // Reset button handler
+    document.getElementById('reset').addEventListener('click', () => {
+      location.reload();
+    });
+    
+    // Load GIF preview
+    window.addEventListener('DOMContentLoaded', () => {
+      const gifCanvas = document.getElementById('gifCanvas');
+      const gifCtx = gifCanvas.getContext('2d');
+      gifCanvas.width = 200;
+      gifCanvas.height = 200;
+      const gifImage = new Image();
+      gifImage.src = './ico.gif';
+      gifImage.onload = () => {
+        function drawGif() {
+          gifCtx.clearRect(0, 0, gifCanvas.width, gifCanvas.height);
+          gifCtx.drawImage(gifImage, 0, 0, gifCanvas.width, gifCanvas.height);
+          requestAnimationFrame(drawGif);
+        }
+        drawGif();
+      };
+    });
+  </script>
+  
+  <!-- External Scripts -->
+  <script src="GradientSlider.js"></script>
+  <script src="script.js"></script>
+  <script src="fps.js"></script>
 </body>
 </html>
