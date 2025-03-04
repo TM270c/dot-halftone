@@ -15,13 +15,11 @@
       --button-bg: #2a2a2a;
       --button-hover: #3a3a3a;
     }
-
     * {
-      margin: 0;
-      padding: 0;
+      margin: 0; 
+      padding: 0; 
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg-primary);
@@ -32,118 +30,58 @@
       flex-direction: column;
       overflow: hidden;
     }
-
-    /* Header styles */
     .header {
       padding: 12px 20px;
       background-color: var(--bg-secondary);
       border-bottom: 1px solid var(--border);
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
     }
-
     .title-container {
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
-
     .title {
       font-size: 1.2rem;
       font-weight: 500;
     }
-
-    /* Main layout */
-    .main-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    .canvas-container {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: var(--bg-primary);
-      padding: 16px;
-    }
-
-    #canvas {
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
-
-    /* Settings panel */
-    .settings-panel {
-      width: 300px;
-      background-color: var(--bg-secondary);
-      border-left: 1px solid var(--border);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .panel-section {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    /* Remove border for the last panel section (GIF preview) */
-    .panel-section:last-child {
-      border-bottom: none;
-    }
-
-    .panel-title {
+    /* Ensure consistent height, padding, and font for inputs and buttons */
+    input[type="text"],
+    .btn-uniform {
+      box-sizing: border-box;
+      height: 32px;
+      line-height: 1.2;
+      padding: 0 8px;
       font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
-      color: var(--accent);
-    }
-
-    /* Form elements */
-    input[type="text"] {
-      padding: 4px 8px;
-      font-size: 0.9rem;
-      border: 1px solid var(--border);
       border-radius: 4px;
+    }
+    input[type="text"] {
+      width: 200px;
+      border: 1px solid var(--border);
       background-color: var(--bg-secondary);
       color: var(--text-primary);
     }
-
-    .btn-uniform, 
-    .custom-file-button {
+    .btn-uniform {
       background-color: var(--button-bg);
       color: var(--text-primary);
       border: 1px solid var(--border);
-      border-radius: 4px;
       cursor: pointer;
       transition: background-color 0.2s;
-      font-size: 0.9rem;
     }
-
-    .btn-uniform {
-      padding: 4px 8px;
-      margin: 0 4px;
-    }
-
-    .btn-uniform:hover,
-    .custom-file-button:hover {
+    .btn-uniform:hover {
       background-color: var(--button-hover);
     }
-
-    /* File inputs */
-    .file-input-group {
-      margin-bottom: 12px;
-      position: relative;
+    .settings-code-container {
+      display: flex;
+      align-items: center;
+      gap: 8px; /* Slightly larger gap for clarity */
+      margin-top: 4px;
     }
-
+    .file-input-group { margin-bottom: 12px; position: relative; }
     .file-input-label {
       display: flex;
       align-items: center;
@@ -151,53 +89,50 @@
       margin-bottom: 6px;
       font-size: 0.9rem;
     }
-
     .fps-display {
       font-size: 0.8rem;
       color: var(--text-secondary);
     }
-
     .custom-file-input {
       position: relative;
       display: block;
       cursor: pointer;
     }
-
     .custom-file-button {
       display: block;
       width: 100%;
-      padding: 8px 12px;
       text-align: center;
+      height: 32px;
+      line-height: 32px;
+      font-size: 0.9rem;
+      background-color: var(--button-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      transition: background-color 0.2s;
     }
-
+    .custom-file-button:hover {
+      background-color: var(--button-hover);
+    }
     .custom-file-input input[type="file"] {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       opacity: 0;
       cursor: pointer;
     }
-
-    /* Sliders */
-    .slider-group {
-      margin-bottom: 16px;
-    }
-
+    .slider-group { margin-bottom: 16px; }
     .slider-label {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
       font-size: 0.9rem;
+      margin-bottom: 4px; /* Slightly reduced to bring control closer */
     }
-
     .slider-value {
       font-size: 0.8rem;
       color: var(--text-secondary);
     }
-
     input[type="range"] {
       width: 100%;
       height: 4px;
@@ -206,7 +141,6 @@
       border-radius: 2px;
       outline: none;
     }
-
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 14px;
@@ -216,7 +150,6 @@
       cursor: pointer;
       border: none;
     }
-
     input[type="range"]::-moz-range-thumb {
       width: 14px;
       height: 14px;
@@ -225,42 +158,34 @@
       cursor: pointer;
       border: none;
     }
-
-    /* Dropdowns */
     select {
       width: 100%;
-      padding: 8px 12px;
+      height: 32px;
+      line-height: 1.2;
+      padding: 0 8px;
       background-color: var(--button-bg);
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text-primary);
       font-size: 0.9rem;
-      -webkit-appearance: none;
-      -moz-appearance: none;
       appearance: none;
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e0e0e0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
       background-repeat: no-repeat;
-      background-position: right 12px top 50%;
+      background-position: right 12px center;
       background-size: 10px auto;
       cursor: pointer;
     }
-
-    /* Gradient controls */
-    .gradient-container {
-      margin-top: 10px;
-    }
-
+    .gradient-container { margin-top: 10px; }
     .gradient-slider {
       position: relative;
       height: 20px;
       background: linear-gradient(to right, red, yellow, blue);
       cursor: pointer;
       border-radius: 4px;
-      overflow: visible; 
+      overflow: visible;
       border: 1px solid var(--border);
       margin-bottom: 10px;
     }
-
     .color-stop {
       position: absolute;
       top: -4px;
@@ -271,11 +196,9 @@
       cursor: pointer;
       transform: translateX(-50%);
     }
-
     .color-stop.active {
       border-color: var(--accent);
     }
-
     .color-tools {
       display: flex;
       align-items: center;
@@ -283,24 +206,19 @@
       gap: 8px;
       justify-content: space-between;
     }
-
     #colorPicker {
-      height: 28px;
-      width: 28px;
+      height: 32px;
+      width: 32px;
       padding: 0;
       border: 1px solid var(--border);
       background: none;
       cursor: pointer;
       border-radius: 4px;
     }
-
-    /* Checkbox */
     .checkbox-group {
       margin-top: 8px;
       font-size: 0.9rem;
     }
-
-    /* GIF Canvas */
     #gifCanvas {
       width: 200px;
       height: 200px;
@@ -308,14 +226,8 @@
       margin: 0 auto;
       background-color: #000;
     }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--bg-secondary);
-    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-secondary); }
     ::-webkit-scrollbar-thumb {
       background: var(--border);
       border-radius: 4px;
@@ -323,16 +235,57 @@
     ::-webkit-scrollbar-thumb:hover {
       background: var(--accent);
     }
+
+    /* Layout for the main content */
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--bg-primary);
+    }
+    .settings-panel {
+      width: 300px;
+      background-color: var(--bg-secondary);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    /* Divider style for sections */
+    hr.section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+    /* Add a little spacing between the section title and its first element */
+    .panel-section h3 + * {
+      margin-top: 8px;
+    }
+    /* Flex container for the button group */
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="title-container">
       <div class="title">Halftone Studio</div>
-      <!-- Default values set for the video URL inputs -->
-      <input type="text" id="scaleVideoUrl" placeholder="Scale Video URL" value="https://i.imgur.com/u71Pt2b.jpeg" />
-      <input type="text" id="colorVideoUrl" placeholder="Color Video URL" value="https://i.imgur.com/u71Pt2b.jpeg" />
-      <button id="loadVideoUrls" class="btn-uniform">Load Videos</button>
+      <!-- Settings Code Input and Apply Button -->
+      <div class="settings-code-container">
+        <input type="text" id="settingsCode" placeholder="Settings Code" />
+        <button id="applySettings" class="btn-uniform">Apply Settings</button>
+        <input type="text" id="scaleVideoUrl" placeholder="Scale Video URL" value="https://i.imgur.com/qMbss8c.mp4" />
+        <input type="text" id="colorVideoUrl" placeholder="Color Video URL" value="https://i.imgur.com/E6eE4K9.mp4" />
+        <button id="loadVideoUrls" class="btn-uniform">Load Videos</button>
+      </div>
     </div>
     <button id="exportSVG" class="btn-uniform">Export SVG</button>
   </div>
@@ -342,10 +295,9 @@
       <canvas id="canvas"></canvas>
     </div>
     <div class="settings-panel">
-      <!-- Media Panel -->
+      <!-- Media Section -->
       <div class="panel-section">
         <h3 class="panel-title">Media</h3>
-        <!-- Scale Media -->
         <div class="file-input-group">
           <div class="file-input-label">
             <span>Scale Media</span>
@@ -357,7 +309,6 @@
             <input type="file" id="scaleMediaFile" accept="video/*, image/*" />
           </label>
         </div>
-        <!-- Color Media -->
         <div class="file-input-group">
           <div class="file-input-label">
             <span>Color Media</span>
@@ -369,7 +320,6 @@
             <input type="file" id="colorMediaFile" accept="video/*, image/*" />
           </label>
         </div>
-        <!-- Dot Shape (SVG) -->
         <div class="file-input-group">
           <div class="file-input-label">
             <span>Dot Shape (SVG)</span>
@@ -381,14 +331,17 @@
           </label>
         </div>
       </div>
+      <!-- Swap, Reset & Randomize Buttons in a Flex Container -->
+      <div class="panel-section">
+        <div class="button-group">
+          <button id="swapMedia" class="btn-uniform">Swap Input</button>
+          <button id="randomize" class="btn-uniform">Randomize</button>
+          <button id="reset" class="btn-uniform">Reset</button>
 
-      <!-- Swap & Reset Buttons -->
-      <div class="panel-section" style="text-align: center;">
-        <button id="swapMedia" class="btn-uniform">Swap Media</button>
-        <button id="reset" class="btn-uniform">Reset</button>
+        </div>
       </div>
-
-      <!-- Image Adjustments -->
+      <!-- Image Adjustments Section with Divider -->
+      <hr class="section-divider">
       <div class="panel-section">
         <h3 class="panel-title">Image Adjustments</h3>
         <div class="slider-group">
@@ -396,21 +349,21 @@
             <span>Brightness</span>
             <span class="slider-value" id="brightnessValue">0</span>
           </div>
-          <input type="range" id="brightness" min="-100" max="100" value="0" />
+          <input type="range" id="brightness" min="-100" max="100" value="10" />
         </div>
         <div class="slider-group">
           <div class="slider-label">
             <span>Contrast</span>
             <span class="slider-value" id="contrastValue">0</span>
           </div>
-          <input type="range" id="contrast" min="-128" max="128" value="0" />
+          <input type="range" id="contrast" min="-128" max="128" value="30" />
         </div>
         <div class="slider-group">
           <div class="slider-label">
             <span>Gamma</span>
             <span class="slider-value" id="gammaValue">1.0</span>
           </div>
-          <input type="range" id="gamma" min="0.1" max="5" step="0.1" value="1" />
+          <input type="range" id="gamma" min="0.1" max="5" step="0.1" value="5" />
         </div>
         <div class="slider-group">
           <div class="slider-label">
@@ -420,8 +373,8 @@
           <input type="range" id="smoothing" min="0" max="3" step="0.1" value="0" />
         </div>
       </div>
-
-      <!-- Halftone Options -->
+      <!-- Halftone Options Section with Divider -->
+      <hr class="section-divider">
       <div class="panel-section">
         <h3 class="panel-title">Halftone Options</h3>
         <div class="slider-group">
@@ -451,7 +404,7 @@
         </div>
         <div class="slider-group checkbox-group">
           <label>
-            <input type="checkbox" id="invertScale" />
+            <input type="checkbox" id="invertScale" checked/>
             Invert Scale Image
           </label>
         </div>
@@ -463,8 +416,8 @@
           <input type="range" id="hue" min="-180" max="180" step="1" value="0" />
         </div>
       </div>
-
-      <!-- Color & Gradient -->
+      <!-- Color & Gradient Section with Divider -->
+      <hr class="section-divider">
       <div class="panel-section">
         <h3 class="panel-title">Color & Gradient</h3>
         <div class="slider-group">
@@ -476,7 +429,7 @@
             <option value="gradientY">Gradient Y</option>
             <option value="gradientLum1">Scale Luminance</option>
             <option value="gradientLum2">Color Luminance</option>
-            <option value="imageSecondary">Image Color</option>
+            <option value="imageSecondary" selected>Image Color</option>
             <option value="noise">Random Noise</option>
             <option value="checkered">Checkered</option>
           </select>
@@ -489,8 +442,7 @@
           </div>
         </div>
       </div>
-
-      <!-- GIF Canvas -->
+      <!-- GIF Preview Section -->
       <div class="panel-section">
         <canvas id="gifCanvas"></canvas>
       </div>
@@ -498,34 +450,64 @@
   </div>
 
   <script>
-    // Update slider value displays
-    const sliders = ['brightness', 'contrast', 'gamma', 'smoothing', 'cellSize', 'dotScale'];
-    sliders.forEach(id => {
-      document.getElementById(id).addEventListener('input', function() {
-        document.getElementById(id + 'Value').textContent = this.value;
+    document.addEventListener('DOMContentLoaded', () => {
+      // Update slider value displays
+      ['brightness', 'contrast', 'gamma', 'smoothing', 'cellSize', 'dotScale'].forEach(id => {
+        const input = document.getElementById(id);
+        const valueDisplay = document.getElementById(id + 'Value');
+        input.addEventListener('input', () => { valueDisplay.textContent = input.value; });
       });
-    });
-    
-    // Special case for hue slider
-    document.getElementById('hue').addEventListener('input', function() {
-      document.getElementById('hueValue').textContent = this.value + "°";
-    });
-    
-    // Update file input labels
-    const fileInputs = ['scaleMediaFile', 'colorMediaFile', 'dotShapeFile'];
-    fileInputs.forEach(id => {
-      document.getElementById(id).addEventListener('change', function() {
-        this.previousElementSibling.textContent = this.files[0] ? this.files[0].name : 'Choose file';
+      document.getElementById('hue').addEventListener('input', e => {
+        document.getElementById('hueValue').textContent = e.target.value + "°";
       });
-    });
-    
-    // Reset button handler
-    document.getElementById('reset').addEventListener('click', () => {
-      location.reload();
-    });
-    
-    // Load GIF preview
-    window.addEventListener('DOMContentLoaded', () => {
+      // Update file input labels
+      ['scaleMediaFile', 'colorMediaFile', 'dotShapeFile'].forEach(id => {
+        document.getElementById(id).addEventListener('change', function() {
+          this.previousElementSibling.textContent = this.files[0] ? this.files[0].name : 'Choose file';
+        });
+      });
+      // Reset button handler
+      document.getElementById('reset').addEventListener('click', () => location.reload());
+
+      // Randomize settings button handler
+      document.getElementById('randomize').addEventListener('click', () => {
+        // Helper functions for random values
+        const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const randomFloat = (min, max, step) => {
+          const steps = Math.floor((max - min) / step);
+          return (Math.floor(Math.random() * (steps + 1)) * step + min).toFixed(1);
+        };
+
+        const brightnessVal = randomInt(-100, 100);
+        document.getElementById('brightness').value = brightnessVal;
+        document.getElementById('brightness').dispatchEvent(new Event('input'));
+
+        const contrastVal = randomInt(-128, 128);
+        document.getElementById('contrast').value = contrastVal;
+        document.getElementById('contrast').dispatchEvent(new Event('input'));
+
+        const gammaVal = randomFloat(0.1, 5, 0.1);
+        document.getElementById('gamma').value = gammaVal;
+        document.getElementById('gamma').dispatchEvent(new Event('input'));
+
+        const smoothingVal = randomFloat(0, 3, 0.1);
+        document.getElementById('smoothing').value = smoothingVal;
+        document.getElementById('smoothing').dispatchEvent(new Event('input'));
+
+        const cellSizeVal = randomInt(5, 50);
+        document.getElementById('cellSize').value = cellSizeVal;
+        document.getElementById('cellSize').dispatchEvent(new Event('input'));
+
+        const dotScaleVal = randomFloat(0.1, 5, 0.1);
+        document.getElementById('dotScale').value = dotScaleVal;
+        document.getElementById('dotScale').dispatchEvent(new Event('input'));
+
+        const hueVal = randomInt(-180, 180);
+        document.getElementById('hue').value = hueVal;
+        document.getElementById('hue').dispatchEvent(new Event('input'));
+      });
+
+      // Load GIF preview
       const gifCanvas = document.getElementById('gifCanvas');
       const gifCtx = gifCanvas.getContext('2d');
       gifCanvas.width = 200;
@@ -540,16 +522,12 @@
         }
         drawGif();
       };
-    });
-    
-    // Automatically load the default URL for both scale and color inputs
-    document.addEventListener('DOMContentLoaded', () => {
-      // The inputs already have a default value in the HTML
-      // Simulate a click on the load button to load the media automatically
+
+      // Automatically load default media via video URLs
       document.getElementById('loadVideoUrls').click();
     });
   </script>
-  
+
   <!-- External Scripts -->
   <script src="gradientslider.js"></script>
   <script src="script.js"></script>

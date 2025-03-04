@@ -1,35 +1,35 @@
 /*************************************************
- * script.js
+ * script.js - Optimized with Tab Visibility Fixes
  *************************************************/
 
 // 1) MEDIA HANDLER
 class MediaHandler {
   constructor() {
-    this.mediaElement = null; // <video> or <img>
+    this.mediaElement = null;
     this.isVideo = false;
     this.isLoaded = false;
     this.width = 0;
     this.height = 0;
-    this.frameRate = 24; // Default frame rate
+    this.frameRate = 24;
   }
   loadFromFile(file) {
     return new Promise((resolve, reject) => {
       if (file.type.startsWith('video/')) {
         this.isVideo = true;
-        const v = document.createElement('video');
-        v.autoplay = false;
-        v.loop = true;
-        v.muted = true;
-        v.playsInline = true;
-        v.src = URL.createObjectURL(file);
-        v.addEventListener('loadeddata', () => {
-          this.mediaElement = v;
-          this.width = v.videoWidth;
-          this.height = v.videoHeight;
+        const video = document.createElement('video');
+        video.autoplay = false;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.src = URL.createObjectURL(file);
+        video.addEventListener('loadeddata', () => {
+          this.mediaElement = video;
+          this.width = video.videoWidth;
+          this.height = video.videoHeight;
           this.isLoaded = true;
           resolve();
         });
-        v.addEventListener('error', () => reject(new Error('Error loading video file.')));
+        video.addEventListener('error', () => reject(new Error('Error loading video file.')));
       } else if (file.type.startsWith('image/')) {
         this.isVideo = false;
         const img = document.createElement('img');
@@ -47,30 +47,27 @@ class MediaHandler {
       }
     });
   }
-  // New method: load media from a URL (works for both video and image)
   loadFromUrl(url) {
     return new Promise((resolve, reject) => {
-      // Check for common video extensions (you may extend this list)
       const videoExtensions = ['mp4', 'webm', 'ogg'];
-      const urlLower = url.toLowerCase();
-      const isVideo = videoExtensions.some(ext => urlLower.endsWith(ext));
+      const isVideo = videoExtensions.some(ext => url.toLowerCase().endsWith(ext));
       if (isVideo) {
         this.isVideo = true;
-        const v = document.createElement('video');
-        v.autoplay = false;
-        v.loop = true;
-        v.muted = true;
-        v.playsInline = true;
-        v.crossOrigin = "anonymous"; // To avoid CORS issues if allowed
-        v.addEventListener('loadeddata', () => {
-          this.mediaElement = v;
-          this.width = v.videoWidth;
-          this.height = v.videoHeight;
+        const video = document.createElement('video');
+        video.autoplay = false;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.crossOrigin = "anonymous";
+        video.addEventListener('loadeddata', () => {
+          this.mediaElement = video;
+          this.width = video.videoWidth;
+          this.height = video.videoHeight;
           this.isLoaded = true;
           resolve();
         });
-        v.addEventListener('error', () => reject(new Error('Failed to load video from URL.')));
-        v.src = url;
+        video.addEventListener('error', () => reject(new Error('Failed to load video from URL.')));
+        video.src = url;
       } else {
         this.isVideo = false;
         const img = new Image();
@@ -103,8 +100,6 @@ class MediaHandler {
 }
 
 // 2) DOM REFERENCES & GLOBALS
-
-// Existing file inputs and buttons
 const scaleInput       = document.getElementById('scaleMediaFile');
 const colorInput       = document.getElementById('colorMediaFile');
 const dotShapeFile     = document.getElementById('dotShapeFile');
@@ -125,29 +120,24 @@ const contrastInput    = document.getElementById('contrast');
 const gammaInput       = document.getElementById('gamma');
 const smoothingInput   = document.getElementById('smoothing');
 const ditherSelect     = document.getElementById('ditherType');
-const cellSizeInput    = document.getElementById('cellSize');  // Cell Size slider
-const dotScaleInput    = document.getElementById('dotScale');    // Dot Scale slider
+const cellSizeInput    = document.getElementById('cellSize');
+const dotScaleInput    = document.getElementById('dotScale');
 
 const invertScaleCheckbox = document.getElementById('invertScale');
 const hueInput         = document.getElementById('hue');
 
-// NEW: References for video URL inputs and load button (added in the header)
 const scaleVideoUrl    = document.getElementById('scaleVideoUrl');
 const colorVideoUrl    = document.getElementById('colorVideoUrl');
 const loadVideoUrlsBtn = document.getElementById('loadVideoUrls');
 
-// Media handler objects (for scale and color)
 let scaleMedia = new MediaHandler();
 let colorMedia = new MediaHandler();
-
-// Global variables for rendering, dot shape, etc.
 let animationId = null;
 let noiseColorCache = {};
-let isNoisePatternGenerated = false; // Flag to check if noise pattern has been generated
+let isNoisePatternGenerated = false;
 
-// Fixed timestep variables
 const TARGET_FPS = 24;
-const TIME_STEP = 1000 / TARGET_FPS; // in ms
+const TIME_STEP = 1000 / TARGET_FPS;
 let lastFrameTime = 0;
 let accumulatedTime = 0;
 
@@ -156,21 +146,18 @@ let dotShapeLoaded = false;
 let dotShapeW = 0;
 let dotShapeH = 0;
 
-// 3) NEW: Video URL Loader
+// 3) VIDEO URL LOADER
 loadVideoUrlsBtn.addEventListener('click', () => {
   const scaleUrl = scaleVideoUrl.value.trim();
   const colorUrl = colorVideoUrl.value.trim();
-  
-  // Reset noise pattern generation flag when loading new media
   isNoisePatternGenerated = false;
-  
   if (scaleUrl) {
     scaleMedia = new MediaHandler();
     scaleMedia.loadFromUrl(scaleUrl)
       .then(() => {
         if (scaleMedia.isVideo) {
           scaleMedia.mediaElement.currentTime = 0;
-          scaleMedia.mediaElement.playbackRate = 1.0; // Set a consistent playback rate
+          scaleMedia.mediaElement.playbackRate = 1.0;
           scaleMedia.mediaElement.play();
         }
         checkAndStartBoth();
@@ -183,7 +170,7 @@ loadVideoUrlsBtn.addEventListener('click', () => {
       .then(() => {
         if (colorMedia.isVideo) {
           colorMedia.mediaElement.currentTime = 0;
-          colorMedia.mediaElement.playbackRate = 1.0; // Set a consistent playback rate
+          colorMedia.mediaElement.playbackRate = 1.0;
           colorMedia.mediaElement.play();
         }
         checkAndStartBoth();
@@ -192,20 +179,16 @@ loadVideoUrlsBtn.addEventListener('click', () => {
   }
 });
 
-// 4) FILE INPUT EVENT LISTENERS FOR SCALE & COLOR
+// 4) FILE INPUT EVENT LISTENERS
 scaleInput.onchange = async () => {
   const file = scaleInput.files[0];
   if (!file) return;
   if (animationId) cancelAnimationFrame(animationId);
-  
-  // Reset noise pattern generation flag when loading new media
   isNoisePatternGenerated = false;
-  
   scaleMedia = new MediaHandler();
   await scaleMedia.loadFromFile(file);
   if (scaleMedia.isVideo) {
     attachFPSCounter(scaleMedia.mediaElement, 'scaleFPS');
-    // Set consistent playback rate
     scaleMedia.mediaElement.playbackRate = 1.0;
   } else {
     document.getElementById('scaleFPS').textContent = 'FPS: N/A';
@@ -217,15 +200,11 @@ colorInput.onchange = async () => {
   const file = colorInput.files[0];
   if (!file) return;
   if (animationId) cancelAnimationFrame(animationId);
-  
-  // Reset noise pattern generation flag when loading new media
   isNoisePatternGenerated = false;
-  
   colorMedia = new MediaHandler();
   await colorMedia.loadFromFile(file);
   if (colorMedia.isVideo) {
     attachFPSCounter(colorMedia.mediaElement, 'colorFPS');
-    // Set consistent playback rate
     colorMedia.mediaElement.playbackRate = 1.0;
   } else {
     document.getElementById('colorFPS').textContent = 'FPS: N/A';
@@ -236,111 +215,61 @@ colorInput.onchange = async () => {
 // 5) REMOVE / SWAP MEDIA
 removeScaleBtn.addEventListener('click', () => {
   if (animationId) cancelAnimationFrame(animationId);
-  
-  // Only reset noise cache if switching color modes
-  if (colorModeSelect.value === 'noise') {
-    isNoisePatternGenerated = false;
-  }
-  
-  if (scaleMedia.isVideo && scaleMedia.mediaElement) {
-    scaleMedia.mediaElement.pause();
-  }
+  if (colorModeSelect.value === 'noise') isNoisePatternGenerated = false;
+  if (scaleMedia.isVideo && scaleMedia.mediaElement) scaleMedia.mediaElement.pause();
   scaleMedia = new MediaHandler();
   scaleInput.value = null;
   document.getElementById('scaleFPS').textContent = 'FPS: --';
-  if (colorMedia.isLoaded) {
-    setupCanvas();
-    startRenderLoop();
-  } else {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  if (colorMedia.isLoaded) { setupCanvas(); startRenderLoop(); }
+  else { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 });
 
 removeColorBtn.addEventListener('click', () => {
   if (animationId) cancelAnimationFrame(animationId);
-  
-  // Only reset noise cache if switching color modes
-  if (colorModeSelect.value === 'noise') {
-    isNoisePatternGenerated = false;
-  }
-  
-  if (colorMedia.isVideo && colorMedia.mediaElement) {
-    colorMedia.mediaElement.pause();
-  }
+  if (colorModeSelect.value === 'noise') isNoisePatternGenerated = false;
+  if (colorMedia.isVideo && colorMedia.mediaElement) colorMedia.mediaElement.pause();
   colorMedia = new MediaHandler();
   colorInput.value = null;
   document.getElementById('colorFPS').textContent = 'FPS: --';
-  if (scaleMedia.isLoaded) {
-    setupCanvas();
-    startRenderLoop();
-  } else {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  if (scaleMedia.isLoaded) { setupCanvas(); startRenderLoop(); }
+  else { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 });
 
 swapBtn.addEventListener('click', () => {
   if (animationId) cancelAnimationFrame(animationId);
-  
-  // Reset noise pattern generation flag when swapping media
   isNoisePatternGenerated = false;
-  
   [scaleMedia, colorMedia] = [colorMedia, scaleMedia];
   reattachFPSUI();
-  if (scaleMedia.isLoaded) {
-    setupCanvas();
-    startRenderLoop();
-  } else if (colorMedia.isLoaded) {
+  if (scaleMedia.isLoaded) { setupCanvas(); startRenderLoop(); }
+  else if (colorMedia.isLoaded) {
     canvas.width = 500;
     const ratio = colorMedia.height / colorMedia.width;
     canvas.height = 500 * ratio;
     startRenderLoop();
-  } else {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  } else { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 });
 
 function reattachFPSUI() {
-  if (scaleMedia.isVideo && scaleMedia.isLoaded) {
+  if (scaleMedia.isVideo && scaleMedia.isLoaded)
     attachFPSCounter(scaleMedia.mediaElement, 'scaleFPS');
-  } else {
-    document.getElementById('scaleFPS').textContent = 'FPS: N/A';
-  }
-  if (colorMedia.isVideo && colorMedia.mediaElement) {
+  else document.getElementById('scaleFPS').textContent = 'FPS: N/A';
+  
+  if (colorMedia.isVideo && colorMedia.mediaElement)
     attachFPSCounter(colorMedia.mediaElement, 'colorFPS');
-  } else {
-    document.getElementById('colorFPS').textContent = 'FPS: N/A';
-  }
+  else document.getElementById('colorFPS').textContent = 'FPS: N/A';
 }
 
 // 6) START OR RESUME RENDERING
 function checkAndStartBoth() {
   if (scaleMedia.isLoaded && colorMedia.isLoaded) {
-    if (scaleMedia.isVideo) {
-      scaleMedia.mediaElement.currentTime = 0;
-      scaleMedia.mediaElement.playbackRate = 1.0;
-      scaleMedia.mediaElement.play();
-    }
-    if (colorMedia.isVideo) {
-      colorMedia.mediaElement.currentTime = 0;
-      colorMedia.mediaElement.playbackRate = 1.0;
-      colorMedia.mediaElement.play();
-    }
-    setupCanvas();
-    startRenderLoop();
+    if (scaleMedia.isVideo) { scaleMedia.mediaElement.currentTime = 0; scaleMedia.mediaElement.play(); }
+    if (colorMedia.isVideo) { colorMedia.mediaElement.currentTime = 0; colorMedia.mediaElement.play(); }
+    setupCanvas(); startRenderLoop();
   } else if (scaleMedia.isLoaded) {
-    if (scaleMedia.isVideo) {
-      scaleMedia.mediaElement.currentTime = 0;
-      scaleMedia.mediaElement.playbackRate = 1.0;
-      scaleMedia.mediaElement.play();
-    }
-    setupCanvas();
-    startRenderLoop();
+    if (scaleMedia.isVideo) { scaleMedia.mediaElement.currentTime = 0; scaleMedia.mediaElement.play(); }
+    setupCanvas(); startRenderLoop();
   } else if (colorMedia.isLoaded) {
-    if (colorMedia.isVideo) {
-      colorMedia.mediaElement.currentTime = 0;
-      colorMedia.mediaElement.playbackRate = 1.0;
-      colorMedia.mediaElement.play();
-    }
+    if (colorMedia.isVideo) { colorMedia.mediaElement.currentTime = 0; colorMedia.mediaElement.play(); }
     canvas.width = 500;
     const ratio = colorMedia.height / colorMedia.width;
     canvas.height = 500 * ratio;
@@ -357,133 +286,92 @@ function setupCanvas() {
   canvas.height = scaleMedia.height;
 }
 
-// 7) MAIN RENDER LOOP (Modified for fixed time step)
+// 7) MAIN RENDER LOOP (Fixed Time Step with Delta Clamping)
 function startRenderLoop() {
-  // Initialize timing variables
   lastFrameTime = performance.now();
   accumulatedTime = 0;
   
-  // Generate noise pattern once if using noise mode
   if (colorModeSelect.value === 'noise' && !isNoisePatternGenerated) {
     generateNoisePattern(canvas.width, canvas.height, getCellSize());
     isNoisePatternGenerated = true;
   }
   
-  // Main animation function using fixed time step
   function animate(currentTime) {
-    // Calculate elapsed time since last frame
-    const deltaTime = currentTime - lastFrameTime;
+    let deltaTime = currentTime - lastFrameTime;
     lastFrameTime = currentTime;
-    
-    // Accumulate time and update only when enough time has passed
+    // Clamp deltaTime to a maximum value (e.g., 50ms)
+    deltaTime = Math.min(deltaTime, 50);
     accumulatedTime += deltaTime;
     
-    // Process as many updates as needed to catch up
     while (accumulatedTime >= TIME_STEP) {
       updateFrame();
       accumulatedTime -= TIME_STEP;
     }
     
-    // Continue animation loop
     animationId = requestAnimationFrame(animate);
   }
   
-  // Start the animation loop
   animationId = requestAnimationFrame(animate);
 }
 
-// New function for generating persistent noise pattern
 function generateNoisePattern(width, height, cellSize) {
   noiseColorCache = {};
   const stops = gradientSlider.getStops();
-  
-  for (let y = 0; y < height; y += cellSize) {
+  for (let y = 0; y < height; y += cellSize)
     for (let x = 0; x < width; x += cellSize) {
       const key = `${x}_${y}`;
-      const t = Math.random();
-      noiseColorCache[key] = getColorFromGradient(t, stops);
+      noiseColorCache[key] = getColorFromGradient(Math.random(), stops);
     }
-  }
 }
 
-// New function to separate render update from animation frame
 function updateFrame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Grab raw image data for scale & color
   const scaleData = scaleMedia.isLoaded ? scaleMedia.getFrameImageData(canvas.width, canvas.height) : null;
   const colorData = colorMedia.isLoaded ? colorMedia.getFrameImageData(canvas.width, canvas.height) : null;
-
-  // 7A) Process scale data into a grayscale Float32 array
   let scaleGray = null;
   if (scaleData) {
     scaleGray = convertToGrayscaleFloat(scaleData);
-    applyBrightnessContrastGamma(
-      scaleGray,
-      canvas.width,
-      canvas.height,
+    applyBrightnessContrastGamma(scaleGray, canvas.width, canvas.height,
       parseInt(brightnessInput.value, 10),
       parseInt(contrastInput.value, 10),
-      parseFloat(gammaInput.value)
-    );
-    scaleGray = applyBoxBlur(
-      scaleGray,
-      canvas.width,
-      canvas.height,
-      parseFloat(smoothingInput.value)
-    );
-    applyDithering(
-      scaleGray,
-      canvas.width,
-      canvas.height,
-      ditherSelect.value
-    );
-    if (invertScaleCheckbox.checked) {
-      for (let i = 0; i < scaleGray.length; i++) {
-        scaleGray[i] = 255 - scaleGray[i];
-      }
-    }
+      parseFloat(gammaInput.value));
+    scaleGray = applyBoxBlur(scaleGray, canvas.width, canvas.height, parseFloat(smoothingInput.value));
+    applyDithering(scaleGray, canvas.width, canvas.height, ditherSelect.value);
+    if (invertScaleCheckbox.checked)
+      for (let i = 0; i < scaleGray.length; i++) { scaleGray[i] = 255 - scaleGray[i]; }
   }
-
-  const cellSize = getCellSize();
   
-  // If using noise mode and noise pattern isn't generated yet, generate it
+  const cellSize = getCellSize();
   if (colorModeSelect.value === 'noise' && !isNoisePatternGenerated) {
     generateNoisePattern(canvas.width, canvas.height, cellSize);
     isNoisePatternGenerated = true;
   }
-
-  // 7B) Halftone loop over each cell
-  for (let y = 0; y < canvas.height; y += cellSize) {
+  
+  for (let y = 0; y < canvas.height; y += cellSize)
     for (let x = 0; x < canvas.width; x += cellSize) {
       const radius = computeBrightnessRadius(scaleGray, x, y);
       if (radius <= 0.5) continue;
       const fill = getFillColor(x, y, scaleGray, colorData);
-      if (dotShapeLoaded && dotShapeImg) {
+      if (dotShapeLoaded && dotShapeImg)
         drawCustomShape(ctx, x + cellSize / 2, y + cellSize / 2, radius, fill);
-      } else {
+      else {
         ctx.beginPath();
         ctx.arc(x + cellSize / 2, y + cellSize / 2, radius, 0, 2 * Math.PI);
         ctx.fillStyle = fill;
         ctx.fill();
       }
     }
-  }
 }
-  
-// 7B) Helper: Convert ImageData to grayscale Float32 array
-function convertToGrayscaleFloat(imageData) {
-  const { data, width } = imageData;
-  const gray = new Float32Array(width * imageData.height);
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i], g = data[i + 1], b = data[i + 2];
-    const val = 0.299 * r + 0.587 * g + 0.114 * b;
-    gray[i / 4] = val;
-  }
+
+// 7A) Convert ImageData to Grayscale Float32 Array
+function convertToGrayscaleFloat({ data, width, height }) {
+  const gray = new Float32Array(width * height);
+  for (let i = 0; i < data.length; i += 4)
+    gray[i / 4] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
   return gray;
 }
-  
-// 8) DRAWING THE CUSTOM SHAPE
+
+// 8) Draw Custom Shape
 function drawCustomShape(mainCtx, cx, cy, radius, fillColor) {
   if (!dotShapeImg) return;
   const offCanvas = document.createElement('canvas');
@@ -496,33 +384,27 @@ function drawCustomShape(mainCtx, cx, cy, radius, fillColor) {
   offCtx.drawImage(dotShapeImg, 0, 0);
   mainCtx.save();
   mainCtx.translate(cx, cy);
-  const dotScale = parseFloat(dotScaleInput.value);
   const scaleFactor = (2 * radius) / dotShapeW;
   mainCtx.scale(scaleFactor, scaleFactor);
   mainCtx.drawImage(offCanvas, -dotShapeW / 2, -dotShapeH / 2);
   mainCtx.restore();
 }
-  
-// 9) COMPUTE DOT RADIUS (using processed grayscale array)
+
+// 9) Compute Dot Radius
 function computeBrightnessRadius(scaleGray, x, y) {
   const dotScale = parseFloat(dotScaleInput.value);
   const cellSize = getCellSize();
-  if (!scaleGray) {
-    return (cellSize / 2) * dotScale;
-  }
-  const width = canvas.width;
-  const idx = y * width + x;
-  const val = scaleGray[idx];
-  return (cellSize / 2) * dotScale * (1 - val / 255);
+  if (!scaleGray) return (cellSize / 2) * dotScale;
+  const idx = y * canvas.width + x;
+  return (cellSize / 2) * dotScale * (1 - scaleGray[idx] / 255);
 }
-  
-// 10) COLOR MODES (FILL COLOR) - Modified to use persistent noise cache
+
+// 10) Get Fill Color
 function getFillColor(x, y, scaleGray, colorData) {
   const mode = colorModeSelect.value || 'gradientLum1';
   const stops = gradientSlider.getStops();
   const cellSize = getCellSize();
   let base = 'blue';
-  
   switch (mode) {
     case 'gradientX':
       base = getColorFromGradient(x / (canvas.width - 1), stops);
@@ -536,52 +418,30 @@ function getFillColor(x, y, scaleGray, colorData) {
       break;
     }
     case 'gradientLum2': {
-      if (!colorData) {
-        base = getColorFromGradient(0, stops);
-      } else {
+      if (!colorData) base = getColorFromGradient(0, stops);
+      else {
         const idxC = (y * colorData.width + x) * 4;
-        const r = colorData.data[idxC],
-              g = colorData.data[idxC + 1],
-              b = colorData.data[idxC + 2];
-        const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-        const factor = brightness / 255;
-        base = getColorFromGradient(factor, stops);
+        const brightness = 0.299 * colorData.data[idxC] + 0.587 * colorData.data[idxC + 1] + 0.114 * colorData.data[idxC + 2];
+        base = getColorFromGradient(brightness / 255, stops);
       }
       break;
     }
     case 'imageSecondary': {
       if (colorData) {
         const idxC = (y * colorData.width + x) * 4;
-        const r = colorData.data[idxC],
-              g = colorData.data[idxC + 1],
-              b = colorData.data[idxC + 2];
-        base = rgbToHex(r, g, b);
-      } else {
-        base = 'blue';
+        base = rgbToHex(colorData.data[idxC], colorData.data[idxC + 1], colorData.data[idxC + 2]);
       }
       break;
     }
     case 'noise': {
-      // Use pre-generated noise pattern
       const key = `${x}_${y}`;
-      // Generate noise pattern if doesn't exist yet (fallback)
-      if (!noiseColorCache[key]) {
-        const t = Math.random();
-        noiseColorCache[key] = getColorFromGradient(t, stops);
-      }
+      if (!noiseColorCache[key]) noiseColorCache[key] = getColorFromGradient(Math.random(), stops);
       base = noiseColorCache[key];
       break;
     }
     case 'checkered': {
-      if (stops.length < 2) {
-        const isEven = (Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0;
-        base = isEven ? '#000' : '#fff';
-      } else {
-        const firstC = stops[0].color;
-        const lastC = stops[stops.length - 1].color;
-        const isEven = (Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0;
-        base = isEven ? firstC : lastC;
-      }
+      const isEven = (Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0;
+      base = (stops.length < 2) ? (isEven ? '#000' : '#fff') : (isEven ? stops[0].color : stops[stops.length - 1].color);
       break;
     }
     default: {
@@ -589,28 +449,22 @@ function getFillColor(x, y, scaleGray, colorData) {
       base = getColorFromGradient(factor, stops);
     }
   }
-  
-  // Apply hue shift to every computed color.
   const hueVal = parseFloat(hueInput.value) || 0;
-  if (hueVal !== 0) {
-    base = adjustHue(base, hueVal);
-  }
-  return base;
+  return hueVal ? adjustHue(base, hueVal) : base;
 }
-  
-// Utility: Return brightness factor [0..1] from scaleGray array.
+
 function getBrightnessFactor(scaleGray, x, y) {
   if (!scaleGray) return 0;
-  const width = canvas.width;
-  const idx = y * width + x;
-  const val = scaleGray[idx];
-  return val / 255;
+  return scaleGray[y * canvas.width + x] / 255;
 }
-  
-// 10B) GRADIENT & NOISE UTILS
+
+// 10B) Gradient Utilities
 function getColorFromGradient(t, stops) {
   const sorted = [...stops].sort((a, b) => a.position - b.position);
   const position = t * 100;
+  if (position <= sorted[0].position) return sorted[0].color;
+  if (position >= sorted[sorted.length - 1].position) return sorted[sorted.length - 1].color;
+  
   let left = sorted[0], right = sorted[sorted.length - 1];
   for (let i = 0; i < sorted.length - 1; i++) {
     if (sorted[i].position <= position && sorted[i + 1].position >= position) {
@@ -619,15 +473,11 @@ function getColorFromGradient(t, stops) {
       break;
     }
   }
-  if (left.position === right.position) {
-    return left.color;
-  }
+  if (left.position === right.position) return left.color;
   const localFactor = (position - left.position) / (right.position - left.position);
   return blendColors(left.color, right.color, localFactor);
 }
-  
-// getNoiseGradientColor is no longer needed as we use the cache directly
-  
+
 function blendColors(hex1, hex2, factor) {
   const r1 = parseInt(hex1.slice(1, 3), 16),
         g1 = parseInt(hex1.slice(3, 5), 16),
@@ -638,45 +488,39 @@ function blendColors(hex1, hex2, factor) {
   const r = Math.round(r1 + factor * (r2 - r1));
   const g = Math.round(g1 + factor * (g2 - g1));
   const b = Math.round(b1 + factor * (b2 - b1));
-  return '#' + toHex(r) + toHex(g) + toHex(b);
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
 }
-  
-function toHex(val) {
-  return val.toString(16).padStart(2, '0');
-}
-  
-// Hue adjustment helpers
+
 function adjustHue(hex, hueDegrees) {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
-  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-  hsl.h = (hsl.h + hueDegrees) % 360;
-  if (hsl.h < 0) hsl.h += 360;
-  const newRgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+  let { h, s, l } = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  h = (h + hueDegrees) % 360;
+  if (h < 0) h += 360;
+  const newRgb = hslToRgb(h, s, l);
   return rgbToHex(newRgb.r, newRgb.g, newRgb.b);
 }
-  
+
 function hexToRgb(hex) {
   hex = hex.replace('#', '');
   if (hex.length !== 6) return null;
   return {
-    r: parseInt(hex.substring(0, 2), 16),
-    g: parseInt(hex.substring(2, 4), 16),
-    b: parseInt(hex.substring(4, 6), 16)
+    r: parseInt(hex.slice(0, 2), 16),
+    g: parseInt(hex.slice(2, 4), 16),
+    b: parseInt(hex.slice(4, 6), 16)
   };
 }
-  
+
 function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
-  
+
 function rgbToHsl(r, g, b) {
   r /= 255; g /= 255; b /= 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
   let h, s, l = (max + min) / 2;
-  if (max === min) {
-    h = s = 0;
-  } else {
+  if (max === min) { h = s = 0; }
+  else {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
@@ -688,13 +532,12 @@ function rgbToHsl(r, g, b) {
   }
   return { h, s, l };
 }
-  
+
 function hslToRgb(h, s, l) {
   h /= 360;
   let r, g, b;
-  if (s === 0) {
-    r = g = b = l;
-  } else {
+  if (s === 0) { r = g = b = l; }
+  else {
     const hue2rgb = (p, q, t) => {
       if (t < 0) t += 1;
       if (t > 1) t -= 1;
@@ -711,26 +554,23 @@ function hslToRgb(h, s, l) {
   }
   return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 }
-  
-// 11) BRIGHTNESS/CONTRAST/GAMMA + SMOOTHING + DITHERING
+
+// 11) Brightness/Contrast/Gamma, Smoothing & Dithering
 function applyBrightnessContrastGamma(gray, width, height, brightnessVal, contrastVal, gammaVal) {
   const contrastFactor = (259 * (contrastVal + 255)) / (255 * (259 - contrastVal));
   for (let i = 0; i < gray.length; i++) {
-    let val = gray[i];
-    val = contrastFactor * (val - 128) + 128;
-    val += brightnessVal;
+    let val = contrastFactor * (gray[i] - 128) + 128 + brightnessVal;
     val = Math.max(0, Math.min(255, val));
-    val = 255 * Math.pow(val / 255, 1 / gammaVal);
-    gray[i] = val;
+    gray[i] = 255 * Math.pow(val / 255, 1 / gammaVal);
   }
 }
-  
+
 function applyBoxBlur(gray, width, height, strength) {
   if (strength <= 0) return gray;
   let result = new Float32Array(gray);
   const passes = Math.floor(strength);
   for (let p = 0; p < passes; p++) {
-    let temp = new Float32Array(result.length);
+    const temp = new Float32Array(result.length);
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         let sum = 0, count = 0;
@@ -749,31 +589,21 @@ function applyBoxBlur(gray, width, height, strength) {
     result = temp;
   }
   const frac = strength - passes;
-  if (frac > 0) {
-    for (let i = 0; i < result.length; i++) {
+  if (frac > 0)
+    for (let i = 0; i < result.length; i++)
       result[i] = gray[i] * (1 - frac) + result[i] * frac;
-    }
-  }
   return result;
 }
-  
+
 function applyDithering(gray, width, height, ditherType) {
   switch (ditherType) {
-    case 'FloydSteinberg':
-      applyFloydSteinbergDithering(gray, width, height);
-      break;
-    case 'Ordered':
-      applyOrderedDithering(gray, width, height);
-      break;
-    case 'Noise':
-      applyNoiseDithering(gray, width, height);
-      break;
-    case 'None':
-    default:
-      break;
+    case 'FloydSteinberg': applyFloydSteinbergDithering(gray, width, height); break;
+    case 'Ordered': applyOrderedDithering(gray, width, height); break;
+    case 'Noise': applyNoiseDithering(gray, width, height); break;
+    default: break;
   }
 }
-  
+
 function applyFloydSteinbergDithering(gray, width, height) {
   const threshold = 128;
   for (let y = 0; y < height; y++) {
@@ -783,27 +613,18 @@ function applyFloydSteinbergDithering(gray, width, height) {
       const newVal = oldVal < threshold ? 0 : 255;
       const error = oldVal - newVal;
       gray[idx] = newVal;
-      if (x + 1 < width) {
-        gray[y * width + (x + 1)] += error * (7 / 16);
-      }
+      if (x + 1 < width) gray[y * width + (x + 1)] += error * (7/16);
       if (y + 1 < height) {
-        if (x - 1 >= 0) {
-          gray[(y + 1) * width + (x - 1)] += error * (3 / 16);
-        }
-        gray[(y + 1) * width + x] += error * (5 / 16);
-        if (x + 1 < width) {
-          gray[(y + 1) * width + (x + 1)] += error * (1 / 16);
-        }
+        if (x - 1 >= 0) gray[(y+1)*width + (x-1)] += error * (3/16);
+        gray[(y+1)*width + x] += error * (5/16);
+        if (x + 1 < width) gray[(y+1)*width + (x+1)] += error * (1/16);
       }
     }
   }
 }
-  
+
 function applyOrderedDithering(gray, width, height) {
-  const bayer2x2 = [
-    [0, 2],
-    [3, 1]
-  ];
+  const bayer2x2 = [[0,2],[3,1]];
   const size = 2;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -813,7 +634,7 @@ function applyOrderedDithering(gray, width, height) {
     }
   }
 }
-  
+
 function applyNoiseDithering(gray, width, height) {
   const threshold = 128;
   for (let i = 0; i < gray.length; i++) {
@@ -821,8 +642,8 @@ function applyNoiseDithering(gray, width, height) {
     gray[i] = (gray[i] + noise) < threshold ? 0 : 255;
   }
 }
-  
-// 12) EXPORT BUTTON & SVG (Circles only)
+
+// 12) EXPORT BUTTON & SVG
 exportBtn.onclick = async () => {
   if (!scaleMedia.isLoaded && !colorMedia.isLoaded) {
     alert('No media loaded to export!');
@@ -833,16 +654,11 @@ exportBtn.onclick = async () => {
     alert('Invalid frame count.');
     return;
   }
-  // Adjust fps to 24 to match your input video frame rate
   const fps = 60;
   const zip = new JSZip();
   if (animationId) cancelAnimationFrame(animationId);
-  if (scaleMedia.isLoaded && scaleMedia.isVideo) {
-    scaleMedia.mediaElement.currentTime = 0;
-  }
-  if (colorMedia.isLoaded && colorMedia.isVideo) {
-    colorMedia.mediaElement.currentTime = 0;
-  }
+  if (scaleMedia.isLoaded && scaleMedia.isVideo) scaleMedia.mediaElement.currentTime = 0;
+  if (colorMedia.isLoaded && colorMedia.isVideo) colorMedia.mediaElement.currentTime = 0;
   await Promise.all([
     scaleMedia.isLoaded && scaleMedia.isVideo ? waitForSeek(scaleMedia.mediaElement) : Promise.resolve(),
     colorMedia.isLoaded && colorMedia.isVideo ? waitForSeek(colorMedia.mediaElement) : Promise.resolve()
@@ -851,13 +667,10 @@ exportBtn.onclick = async () => {
     const svgContent = renderHalftoneFrameAsSVG();
     const filename = `halftone_frame_${String(f).padStart(3, '0')}.svg`;
     zip.file(filename, svgContent);
-    if (scaleMedia.isLoaded && scaleMedia.isVideo) {
-      // Use modulo arithmetic to loop seamlessly
+    if (scaleMedia.isLoaded && scaleMedia.isVideo)
       scaleMedia.mediaElement.currentTime = (scaleMedia.mediaElement.currentTime + 1 / fps) % scaleMedia.mediaElement.duration;
-    }
-    if (colorMedia.isLoaded && colorMedia.isVideo) {
+    if (colorMedia.isLoaded && colorMedia.isVideo)
       colorMedia.mediaElement.currentTime = (colorMedia.mediaElement.currentTime + 1 / fps) % colorMedia.mediaElement.duration;
-    }
     await Promise.all([
       scaleMedia.isLoaded && scaleMedia.isVideo ? waitForSeek(scaleMedia.mediaElement) : Promise.resolve(),
       colorMedia.isLoaded && colorMedia.isVideo ? waitForSeek(colorMedia.mediaElement) : Promise.resolve()
@@ -872,18 +685,15 @@ exportBtn.onclick = async () => {
   URL.revokeObjectURL(url);
   startRenderLoop();
 };
-  
+
 function waitForSeek(video) {
   return new Promise(resolve => {
-    const onSeek = () => {
-      video.removeEventListener('seeked', onSeek);
-      resolve();
-    };
+    const onSeek = () => { video.removeEventListener('seeked', onSeek); resolve(); };
     video.addEventListener('seeked', onSeek);
   });
 }
-  
-// 13) RENDER SVG FOR EXPORT (Circles only)
+
+// 13) Render SVG for Export
 function renderHalftoneFrameAsSVG() {
   const scaleData = scaleMedia.isLoaded ? scaleMedia.getFrameImageData(canvas.width, canvas.height) : null;
   const colorData = colorMedia.isLoaded ? colorMedia.getFrameImageData(canvas.width, canvas.height) : null;
@@ -891,56 +701,226 @@ function renderHalftoneFrameAsSVG() {
   let scaleGray = null;
   if (scaleData) {
     scaleGray = convertToGrayscaleFloat(scaleData);
-    applyBrightnessContrastGamma(
-      scaleGray,
-      canvas.width,
-      canvas.height,
+    applyBrightnessContrastGamma(scaleGray, canvas.width, canvas.height,
       parseInt(brightnessInput.value, 10),
       parseInt(contrastInput.value, 10),
-      parseFloat(gammaInput.value)
-    );
-    scaleGray = applyBoxBlur(
-      scaleGray,
-      canvas.width,
-      canvas.height,
-      parseFloat(smoothingInput.value)
-    );
-    applyDithering(
-      scaleGray,
-      canvas.width,
-      canvas.height,
-      ditherSelect.value
-    );
-    if (invertScaleCheckbox.checked) {
-      for (let i = 0; i < scaleGray.length; i++) {
-        scaleGray[i] = 255 - scaleGray[i];
-      }
-    }
+      parseFloat(gammaInput.value));
+    scaleGray = applyBoxBlur(scaleGray, canvas.width, canvas.height, parseFloat(smoothingInput.value));
+    applyDithering(scaleGray, canvas.width, canvas.height, ditherSelect.value);
+    if (invertScaleCheckbox.checked)
+      for (let i = 0; i < scaleGray.length; i++) { scaleGray[i] = 255 - scaleGray[i]; }
   }
   const cellSize = getCellSize();
-  for (let y = 0; y < canvas.height; y += cellSize) {
+  for (let y = 0; y < canvas.height; y += cellSize)
     for (let x = 0; x < canvas.width; x += cellSize) {
       const radius = computeBrightnessRadius(scaleGray, x, y);
       if (radius <= 0.5) continue;
       let fill = (colorModeSelect.value === 'noise')
-        ? getNoiseGradientColor(x, y, gradientSlider.getStops())
+        ? getColorFromGradient(Math.random(), gradientSlider.getStops())
         : getFillColor(x, y, scaleGray, colorData);
       svg += `<circle cx="${x + cellSize/2}" cy="${y + cellSize/2}" r="${radius}" fill="${fill}" />`;
     }
-  }
   svg += '</svg>';
   return svg;
 }
-  
-// 14) Utility: Get cell size from slider
+
+// 14) Get Cell Size
 function getCellSize() {
   return parseInt(cellSizeInput.value, 10) || 10;
 }
-  
-// 15) Utility: Invert a hex color
+
+// 15) Invert HEX Color
 function invertHexColor(hex) {
   hex = hex.replace('#', '');
   const num = parseInt(hex, 16);
   const inv = 0xFFFFFF - num;
   return '#' + inv.toString(16).padStart(6, '0');
 }
+
+/*************************************************
+ * Page Visibility API Handling
+ *************************************************/
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    // Reset timing variables to prevent processing a huge delta.
+    lastFrameTime = performance.now();
+    accumulatedTime = 0;
+    
+    // Resume video playback if paused.
+    if (scaleMedia.isVideo && scaleMedia.mediaElement && scaleMedia.mediaElement.paused) {
+      scaleMedia.mediaElement.play();
+    }
+    if (colorMedia.isVideo && colorMedia.mediaElement && colorMedia.mediaElement.paused) {
+      colorMedia.mediaElement.play();
+    }
+    
+    // Restart the render loop if it isn't running.
+    if (!animationId) {
+      startRenderLoop();
+    }
+  } else {
+    // Cancel the render loop when the page is hidden.
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  }
+});
+
+/*************************************************
+ * Compact Settings Encoding/Decoding & Settings Code Sync
+ *************************************************/
+// This section encodes all settings (including up to 5 gradient stops) into a compact code
+// and updates the input box (id="settingsCode") so that users can copy/paste settings codes.
+
+function encodeSettingsCompact() {
+  // Get gradient stops (limit to 5)
+  const stops = gradientSlider.getStops().slice(0, 5);
+  const count = stops.length;
+  const totalBytes = 10 + 1 + count * 3; // 10 fixed bytes + 1 byte for count + 3 bytes per stop
+  const buffer = new ArrayBuffer(totalBytes);
+  const view = new DataView(buffer);
+  let i = 0;
+  
+  // Fixed settings (each stored as 1 byte)
+  view.setUint8(i++, parseInt(brightnessInput.value, 10) + 100); // brightness: 0-200
+  view.setUint8(i++, Math.max(0, Math.min(255, parseInt(contrastInput.value, 10) + 128))); // contrast: 0-255
+  view.setUint8(i++, Math.max(1, Math.min(50, Math.round(parseFloat(gammaInput.value) * 10)))); // gamma: 1-50
+  view.setUint8(i++, Math.max(0, Math.min(30, Math.round(parseFloat(smoothingInput.value) * 10)))); // smoothing: 0-30
+  view.setUint8(i++, parseInt(cellSizeInput.value, 10) - 5); // cell size: 0-45
+  view.setUint8(i++, Math.max(1, Math.min(50, Math.round(parseFloat(dotScaleInput.value) * 10)))); // dot scale: 1-50
+  view.setUint8(i++, parseInt(ditherSelect.value, 10) || 0); // dithering type (0-9)
+  view.setUint8(i++, invertScaleCheckbox.checked ? 1 : 0);
+  // Map hue from -180 to 180 → 0–255
+  view.setUint8(i++, Math.round((parseInt(hueInput.value, 10) + 180) / 360 * 255));
+  view.setUint8(i++, parseInt(colorModeSelect.value, 10) || 0);
+  
+  // Gradient stops
+  view.setUint8(i++, count);
+  stops.forEach(stop => {
+    view.setUint8(i++, Math.round(stop.position)); // position: 0-100
+    // Convert color from "#RRGGBB" to 16-bit RGB565 (2 bytes)
+    const hex = stop.color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const r5 = Math.round(r / 255 * 31);
+    const g6 = Math.round(g / 255 * 63);
+    const b5 = Math.round(b / 255 * 31);
+    const rgb565 = (r5 << 11) | (g6 << 5) | b5;
+    view.setUint16(i, rgb565);
+    i += 2;
+  });
+  
+  // Convert buffer to URL-safe Base64 string (trim '=' padding)
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let j = 0; j < bytes.length; j++) {
+    binary += String.fromCharCode(bytes[j]);
+  }
+  const base64 = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return base64;
+}
+
+function decodeSettingsCompact(code) {
+  code = code.replace(/-/g, '+').replace(/_/g, '/');
+  while (code.length % 4) { code += '='; }
+  const binary = atob(code);
+  const bytes = new Uint8Array(binary.length);
+  for (let j = 0; j < binary.length; j++) {
+    bytes[j] = binary.charCodeAt(j);
+  }
+  const view = new DataView(bytes.buffer);
+  let i = 0;
+  brightnessInput.value = view.getUint8(i++) - 100;
+  contrastInput.value   = view.getUint8(i++) - 128;
+  gammaInput.value      = (view.getUint8(i++) / 10).toFixed(1);
+  smoothingInput.value  = (view.getUint8(i++) / 10).toFixed(1);
+  cellSizeInput.value   = view.getUint8(i++) + 5;
+  dotScaleInput.value   = (view.getUint8(i++) / 10).toFixed(1);
+  ditherSelect.value    = view.getUint8(i++);
+  invertScaleCheckbox.checked = view.getUint8(i++) === 1;
+  hueInput.value = Math.round(view.getUint8(i++) / 255 * 360) - 180;
+  colorModeSelect.value = view.getUint8(i++);
+  const count = view.getUint8(i++);
+  const stops = [];
+  for (let s = 0; s < count; s++) {
+    const pos = view.getUint8(i++);
+    const rgb565 = view.getUint16(i);
+    i += 2;
+    const r5 = (rgb565 >> 11) & 0x1F;
+    const g6 = (rgb565 >> 5) & 0x3F;
+    const b5 = rgb565 & 0x1F;
+    const r = Math.round(r5 / 31 * 255);
+    const g = Math.round(g6 / 63 * 255);
+    const b = Math.round(b5 / 31 * 255);
+    const col = '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    stops.push({ position: pos, color: col });
+  }
+  gradientSlider.stops = stops.slice(0, 5);
+  gradientSlider.rebuildStops();
+  gradientSlider.updateGradient();
+  updateSettingsCode();
+}
+
+function updateSettingsCode() {
+  const code = encodeSettingsCompact();
+  document.getElementById('settingsCode').value = code;
+}
+
+// Attach event listeners to update the settings code when a control changes.
+document.addEventListener('DOMContentLoaded', () => {
+  const updateIDs = ['brightness', 'contrast', 'gamma', 'smoothing', 'cellSize', 'dotScale', 'hue'];
+  updateIDs.forEach(id => {
+    const input = document.getElementById(id);
+    input.addEventListener('input', updateSettingsCode);
+  });
+  document.getElementById('ditherType').addEventListener('change', updateSettingsCode);
+  document.getElementById('colorMode').addEventListener('change', updateSettingsCode);
+  document.getElementById('invertScale').addEventListener('change', updateSettingsCode);
+  
+  // Patch gradientSlider.updateGradient to call updateSettingsCode after updating.
+  const originalUpdateGradient = gradientSlider.updateGradient.bind(gradientSlider);
+  gradientSlider.updateGradient = function() {
+    originalUpdateGradient();
+    updateSettingsCode();
+  };
+
+  const applyBtn = document.getElementById('applySettings');
+  if (applyBtn) {
+    applyBtn.addEventListener('click', () => {
+      const code = document.getElementById('settingsCode').value.trim();
+      if (code) decodeSettingsCompact(code);
+    });
+  }
+  
+  updateSettingsCode();
+});
+
+/*************************************************
+ * Page Visibility API Handling
+ *************************************************/
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    lastFrameTime = performance.now();
+    accumulatedTime = 0;
+    
+    if (scaleMedia.isVideo && scaleMedia.mediaElement && scaleMedia.mediaElement.paused) {
+      scaleMedia.mediaElement.play();
+    }
+    if (colorMedia.isVideo && colorMedia.mediaElement && colorMedia.mediaElement.paused) {
+      colorMedia.mediaElement.play();
+    }
+    
+    if (!animationId) {
+      startRenderLoop();
+    }
+  } else {
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  }
+});
+
+/* (The remainder of your script.js – including media handling, render loop, and other functions – remains unchanged.) */
