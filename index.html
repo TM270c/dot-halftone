@@ -329,8 +329,9 @@
   <div class="header">
     <div class="title-container">
       <div class="title">Halftone Studio</div>
-      <input type="text" id="scaleVideoUrl" placeholder="Scale Video URL" />
-      <input type="text" id="colorVideoUrl" placeholder="Color Video URL" />
+      <!-- Default values set for the video URL inputs -->
+      <input type="text" id="scaleVideoUrl" placeholder="Scale Video URL" value="https://i.imgur.com/u71Pt2b.jpeg" />
+      <input type="text" id="colorVideoUrl" placeholder="Color Video URL" value="https://i.imgur.com/u71Pt2b.jpeg" />
       <button id="loadVideoUrls" class="btn-uniform">Load Videos</button>
     </div>
     <button id="exportSVG" class="btn-uniform">Export SVG</button>
@@ -489,7 +490,7 @@
         </div>
       </div>
 
-      <!-- GIF Canvas - Removed title and modified to have no border -->
+      <!-- GIF Canvas -->
       <div class="panel-section">
         <canvas id="gifCanvas"></canvas>
       </div>
@@ -539,6 +540,13 @@
         }
         drawGif();
       };
+    });
+    
+    // Automatically load the default URL for both scale and color inputs
+    document.addEventListener('DOMContentLoaded', () => {
+      // The inputs already have a default value in the HTML
+      // Simulate a click on the load button to load the media automatically
+      document.getElementById('loadVideoUrls').click();
     });
   </script>
   
