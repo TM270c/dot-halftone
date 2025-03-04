@@ -1,5 +1,5 @@
 /*************************************************
- * script.js - Optimized with Tab Visibility Fixes
+ * script.js - Optimized with Tab Visibility, Sync & Dot Shape Fixes
  *************************************************/
 
 // 1) MEDIA HANDLER
@@ -102,7 +102,8 @@ class MediaHandler {
 // 2) DOM REFERENCES & GLOBALS
 const scaleInput       = document.getElementById('scaleMediaFile');
 const colorInput       = document.getElementById('colorMediaFile');
-const dotShapeFile     = document.getElementById('dotShapeFile');
+const dotShapeFile     = document.getElementById('dotShapeFile');  // Dot shape file input
+const removeDotShapeBtn= document.getElementById('removeDotShape'); // Dot shape remove button
 const removeScaleBtn   = document.getElementById('removeScaleMedia');
 const removeColorBtn   = document.getElementById('removeColorMedia');
 const swapBtn          = document.getElementById('swapMedia');
@@ -141,7 +142,7 @@ const TIME_STEP = 1000 / TARGET_FPS;
 let lastFrameTime = 0;
 let accumulatedTime = 0;
 
-let dotShapeImg = null;
+let dotShapeImg = null;   // Holds the uploaded dot shape SVG as an Image
 let dotShapeLoaded = false;
 let dotShapeW = 0;
 let dotShapeH = 0;
@@ -211,6 +212,33 @@ colorInput.onchange = async () => {
   }
   checkAndStartBoth();
 };
+
+// *** Dot Shape File Handling ***
+// When a user uploads a dot shape (SVG), load it into an Image.
+dotShapeFile.onchange = async () => {
+  const file = dotShapeFile.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    dotShapeImg = new Image();
+    dotShapeImg.onload = function() {
+      dotShapeLoaded = true;
+      dotShapeW = dotShapeImg.width;
+      dotShapeH = dotShapeImg.height;
+    };
+    dotShapeImg.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+// Allow removal of the dot shape.
+removeDotShapeBtn.addEventListener('click', () => {
+  dotShapeImg = null;
+  dotShapeLoaded = false;
+  dotShapeW = 0;
+  dotShapeH = 0;
+  dotShapeFile.value = "";
+});
 
 // 5) REMOVE / SWAP MEDIA
 removeScaleBtn.addEventListener('click', () => {
@@ -286,7 +314,7 @@ function setupCanvas() {
   canvas.height = scaleMedia.height;
 }
 
-// 7) MAIN RENDER LOOP (Fixed Time Step with Delta Clamping)
+// 7) MAIN RENDER LOOP (Fixed Time Step with Delta Clamping & Sync)
 function startRenderLoop() {
   lastFrameTime = performance.now();
   accumulatedTime = 0;
@@ -299,13 +327,20 @@ function startRenderLoop() {
   function animate(currentTime) {
     let deltaTime = currentTime - lastFrameTime;
     lastFrameTime = currentTime;
-    // Clamp deltaTime to a maximum value (e.g., 50ms)
     deltaTime = Math.min(deltaTime, 50);
     accumulatedTime += deltaTime;
     
     while (accumulatedTime >= TIME_STEP) {
       updateFrame();
       accumulatedTime -= TIME_STEP;
+    }
+    
+    // Synchronize videos if both are playing and out-of-sync by > 0.1s
+    if (scaleMedia.isVideo && colorMedia.isVideo && scaleMedia.mediaElement && colorMedia.mediaElement) {
+      const diff = Math.abs(scaleMedia.mediaElement.currentTime - colorMedia.mediaElement.currentTime);
+      if (diff > 0.1) {
+        colorMedia.mediaElement.currentTime = scaleMedia.mediaElement.currentTime;
+      }
     }
     
     animationId = requestAnimationFrame(animate);
@@ -371,7 +406,7 @@ function convertToGrayscaleFloat({ data, width, height }) {
   return gray;
 }
 
-// 8) Draw Custom Shape
+// 8) Draw Custom Shape using the uploaded SVG as a mask
 function drawCustomShape(mainCtx, cx, cy, radius, fillColor) {
   if (!dotShapeImg) return;
   const offCanvas = document.createElement('canvas');
@@ -399,7 +434,7 @@ function computeBrightnessRadius(scaleGray, x, y) {
   return (cellSize / 2) * dotScale * (1 - scaleGray[idx] / 255);
 }
 
-// 10) Get Fill Color
+// 10) Get Fill Color based on the selected mode
 function getFillColor(x, y, scaleGray, colorData) {
   const mode = colorModeSelect.value || 'gradientLum1';
   const stops = gradientSlider.getStops();
@@ -738,68 +773,37 @@ function invertHexColor(hex) {
 }
 
 /*************************************************
- * Page Visibility API Handling
- *************************************************/
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    // Reset timing variables to prevent processing a huge delta.
-    lastFrameTime = performance.now();
-    accumulatedTime = 0;
-    
-    // Resume video playback if paused.
-    if (scaleMedia.isVideo && scaleMedia.mediaElement && scaleMedia.mediaElement.paused) {
-      scaleMedia.mediaElement.play();
-    }
-    if (colorMedia.isVideo && colorMedia.mediaElement && colorMedia.mediaElement.paused) {
-      colorMedia.mediaElement.play();
-    }
-    
-    // Restart the render loop if it isn't running.
-    if (!animationId) {
-      startRenderLoop();
-    }
-  } else {
-    // Cancel the render loop when the page is hidden.
-    if (animationId) {
-      cancelAnimationFrame(animationId);
-      animationId = null;
-    }
-  }
-});
-
-/*************************************************
  * Compact Settings Encoding/Decoding & Settings Code Sync
  *************************************************/
-// This section encodes all settings (including up to 5 gradient stops) into a compact code
-// and updates the input box (id="settingsCode") so that users can copy/paste settings codes.
-
 function encodeSettingsCompact() {
-  // Get gradient stops (limit to 5)
   const stops = gradientSlider.getStops().slice(0, 5);
   const count = stops.length;
-  const totalBytes = 10 + 1 + count * 3; // 10 fixed bytes + 1 byte for count + 3 bytes per stop
+  const totalBytes = 10 + 1 + count * 3;
   const buffer = new ArrayBuffer(totalBytes);
   const view = new DataView(buffer);
   let i = 0;
   
-  // Fixed settings (each stored as 1 byte)
-  view.setUint8(i++, parseInt(brightnessInput.value, 10) + 100); // brightness: 0-200
-  view.setUint8(i++, Math.max(0, Math.min(255, parseInt(contrastInput.value, 10) + 128))); // contrast: 0-255
-  view.setUint8(i++, Math.max(1, Math.min(50, Math.round(parseFloat(gammaInput.value) * 10)))); // gamma: 1-50
-  view.setUint8(i++, Math.max(0, Math.min(30, Math.round(parseFloat(smoothingInput.value) * 10)))); // smoothing: 0-30
-  view.setUint8(i++, parseInt(cellSizeInput.value, 10) - 5); // cell size: 0-45
-  view.setUint8(i++, Math.max(1, Math.min(50, Math.round(parseFloat(dotScaleInput.value) * 10)))); // dot scale: 1-50
-  view.setUint8(i++, parseInt(ditherSelect.value, 10) || 0); // dithering type (0-9)
-  view.setUint8(i++, invertScaleCheckbox.checked ? 1 : 0);
-  // Map hue from -180 to 180 → 0–255
-  view.setUint8(i++, Math.round((parseInt(hueInput.value, 10) + 180) / 360 * 255));
-  view.setUint8(i++, parseInt(colorModeSelect.value, 10) || 0);
+  view.setUint8(i++, parseInt(brightnessInput.value, 10) + 100);
+  view.setUint8(i++, Math.max(0, Math.min(255, parseInt(contrastInput.value, 10) + 128)));
+  view.setUint8(i++, Math.max(1, Math.min(50, Math.round(parseFloat(gammaInput.value) * 10))));
+  view.setUint8(i++, Math.max(0, Math.min(30, Math.round(parseFloat(smoothingInput.value) * 10))));
+  view.setUint8(i++, parseInt(cellSizeInput.value, 10) - 5);
+  view.setUint8(i++, Math.max(1, Math.min(50, Math.round(parseFloat(dotScaleInput.value) * 10))));
   
-  // Gradient stops
+  const ditherOptions = ["None", "FloydSteinberg", "Ordered", "Noise"];
+  const ditherIndex = ditherOptions.indexOf(ditherSelect.value);
+  view.setUint8(i++, ditherIndex >= 0 ? ditherIndex : 0);
+  
+  view.setUint8(i++, invertScaleCheckbox.checked ? 1 : 0);
+  view.setUint8(i++, Math.round((parseInt(hueInput.value, 10) + 180) / 360 * 255));
+  
+  const colorModeOptions = ["gradientX", "gradientY", "gradientLum1", "gradientLum2", "imageSecondary", "noise", "checkered"];
+  const colorModeIndex = colorModeOptions.indexOf(colorModeSelect.value);
+  view.setUint8(i++, colorModeIndex >= 0 ? colorModeIndex : 0);
+  
   view.setUint8(i++, count);
   stops.forEach(stop => {
-    view.setUint8(i++, Math.round(stop.position)); // position: 0-100
-    // Convert color from "#RRGGBB" to 16-bit RGB565 (2 bytes)
+    view.setUint8(i++, Math.round(stop.position));
     const hex = stop.color.replace('#', '');
     const r = parseInt(hex.substr(0, 2), 16);
     const g = parseInt(hex.substr(2, 2), 16);
@@ -812,7 +816,6 @@ function encodeSettingsCompact() {
     i += 2;
   });
   
-  // Convert buffer to URL-safe Base64 string (trim '=' padding)
   let binary = '';
   const bytes = new Uint8Array(buffer);
   for (let j = 0; j < bytes.length; j++) {
@@ -838,10 +841,18 @@ function decodeSettingsCompact(code) {
   smoothingInput.value  = (view.getUint8(i++) / 10).toFixed(1);
   cellSizeInput.value   = view.getUint8(i++) + 5;
   dotScaleInput.value   = (view.getUint8(i++) / 10).toFixed(1);
-  ditherSelect.value    = view.getUint8(i++);
+  
+  const ditherIndex = view.getUint8(i++);
+  const ditherOptions = ["None", "FloydSteinberg", "Ordered", "Noise"];
+  ditherSelect.value = ditherOptions[ditherIndex] || "None";
+  
   invertScaleCheckbox.checked = view.getUint8(i++) === 1;
   hueInput.value = Math.round(view.getUint8(i++) / 255 * 360) - 180;
-  colorModeSelect.value = view.getUint8(i++);
+  
+  const colorModeIndex = view.getUint8(i++);
+  const colorModeOptions = ["gradientX", "gradientY", "gradientLum1", "gradientLum2", "imageSecondary", "noise", "checkered"];
+  colorModeSelect.value = colorModeOptions[colorModeIndex] || "gradientX";
+  
   const count = view.getUint8(i++);
   const stops = [];
   for (let s = 0; s < count; s++) {
@@ -860,6 +871,18 @@ function decodeSettingsCompact(code) {
   gradientSlider.stops = stops.slice(0, 5);
   gradientSlider.rebuildStops();
   gradientSlider.updateGradient();
+  
+  // Dispatch events to update display numbers and trigger any change listeners
+  brightnessInput.dispatchEvent(new Event('input'));
+  contrastInput.dispatchEvent(new Event('input'));
+  gammaInput.dispatchEvent(new Event('input'));
+  smoothingInput.dispatchEvent(new Event('input'));
+  cellSizeInput.dispatchEvent(new Event('input'));
+  dotScaleInput.dispatchEvent(new Event('input'));
+  hueInput.dispatchEvent(new Event('input'));
+  ditherSelect.dispatchEvent(new Event('change'));
+  colorModeSelect.dispatchEvent(new Event('change'));
+
   updateSettingsCode();
 }
 
@@ -868,7 +891,6 @@ function updateSettingsCode() {
   document.getElementById('settingsCode').value = code;
 }
 
-// Attach event listeners to update the settings code when a control changes.
 document.addEventListener('DOMContentLoaded', () => {
   const updateIDs = ['brightness', 'contrast', 'gamma', 'smoothing', 'cellSize', 'dotScale', 'hue'];
   updateIDs.forEach(id => {
@@ -878,7 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ditherType').addEventListener('change', updateSettingsCode);
   document.getElementById('colorMode').addEventListener('change', updateSettingsCode);
   document.getElementById('invertScale').addEventListener('change', updateSettingsCode);
-  
+
   // Patch gradientSlider.updateGradient to call updateSettingsCode after updating.
   const originalUpdateGradient = gradientSlider.updateGradient.bind(gradientSlider);
   gradientSlider.updateGradient = function() {
@@ -895,6 +917,57 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   updateSettingsCode();
+});
+
+/*************************************************
+ * Randomize Settings Handler
+ *************************************************/
+document.getElementById('randomize').addEventListener('click', () => {
+  const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const randomFloat = (min, max, step) => {
+    const steps = Math.floor((max - min) / step);
+    return (Math.floor(Math.random() * (steps + 1)) * step + min).toFixed(1);
+  };
+
+  const brightnessVal = randomInt(-100, 100);
+  document.getElementById('brightness').value = brightnessVal;
+  document.getElementById('brightness').dispatchEvent(new Event('input'));
+
+  const contrastVal = randomInt(-128, 128);
+  document.getElementById('contrast').value = contrastVal;
+  document.getElementById('contrast').dispatchEvent(new Event('input'));
+
+  const gammaVal = randomFloat(0.1, 5, 0.1);
+  document.getElementById('gamma').value = gammaVal;
+  document.getElementById('gamma').dispatchEvent(new Event('input'));
+
+  const smoothingVal = randomFloat(0, 3, 0.1);
+  document.getElementById('smoothing').value = smoothingVal;
+  document.getElementById('smoothing').dispatchEvent(new Event('input'));
+
+  const cellSizeVal = randomInt(5, 50);
+  document.getElementById('cellSize').value = cellSizeVal;
+  document.getElementById('cellSize').dispatchEvent(new Event('input'));
+
+  const dotScaleVal = randomFloat(0.1, 5, 0.1);
+  document.getElementById('dotScale').value = dotScaleVal;
+  document.getElementById('dotScale').dispatchEvent(new Event('input'));
+
+  const hueVal = randomInt(-180, 180);
+  document.getElementById('hue').value = hueVal;
+  document.getElementById('hue').dispatchEvent(new Event('input'));
+
+  // Randomize dithering type
+  const ditherOptions = ["None", "FloydSteinberg", "Ordered", "Noise"];
+  const randomDither = ditherOptions[Math.floor(Math.random() * ditherOptions.length)];
+  document.getElementById('ditherType').value = randomDither;
+  document.getElementById('ditherType').dispatchEvent(new Event('change'));
+
+  // Randomize color mode
+  const colorModeOptions = ["gradientX", "gradientY", "gradientLum1", "gradientLum2", "imageSecondary", "noise", "checkered"];
+  const randomColorMode = colorModeOptions[Math.floor(Math.random() * colorModeOptions.length)];
+  document.getElementById('colorMode').value = randomColorMode;
+  document.getElementById('colorMode').dispatchEvent(new Event('change'));
 });
 
 /*************************************************
@@ -922,5 +995,3 @@ document.addEventListener('visibilitychange', () => {
     }
   }
 });
-
-/* (The remainder of your script.js – including media handling, render loop, and other functions – remains unchanged.) */
