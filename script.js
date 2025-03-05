@@ -891,7 +891,25 @@ function updateSettingsCode() {
   document.getElementById('settingsCode').value = code;
 }
 
+/*************************************************
+ * DOMContentLoaded & Query Parameter Handling + Share Button
+ *************************************************/
 document.addEventListener('DOMContentLoaded', () => {
+  // Check for query parameters and decode settings if present
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('settings')) {
+    const code = params.get('settings');
+    decodeSettingsCompact(code);
+  }
+  if (params.has('scale')) {
+    const scaleUrl = params.get('scale');
+    document.getElementById('scaleVideoUrl').value = scaleUrl;
+  }
+  if (params.has('color')) {
+    const colorUrl = params.get('color');
+    document.getElementById('colorVideoUrl').value = colorUrl;
+  }
+  
   const updateIDs = ['brightness', 'contrast', 'gamma', 'smoothing', 'cellSize', 'dotScale', 'hue'];
   updateIDs.forEach(id => {
     const input = document.getElementById(id);
@@ -917,6 +935,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   updateSettingsCode();
+  
+  // Add event listener for share button (assumes an element with id "shareBtn" exists in the HTML)
+  const shareBtn = document.getElementById('shareBtn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      // Get the encoded settings from your existing function
+      const settingsCode = encodeSettingsCompact();
+      
+      // Get the video URLs from their input fields
+      const scaleUrl = document.getElementById('scaleVideoUrl').value.trim();
+      const colorUrl = document.getElementById('colorVideoUrl').value.trim();
+      
+      // Construct the share URL using query parameters.
+      // (We use the base URL for your app; adjust if necessary)
+      const baseUrl = "https://tm270c.github.io/dot-halftone/";
+      const queryParams = `?settings=${encodeURIComponent(settingsCode)}&scale=${encodeURIComponent(scaleUrl)}&color=${encodeURIComponent(colorUrl)}`;
+      const shareUrl = baseUrl + queryParams;
+      
+      // Copy the share URL to the clipboard
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => {
+          alert("Share URL copied to clipboard!");
+        })
+        .catch(err => {
+          console.error("Error copying share URL: ", err);
+          alert("Failed to copy share URL.");
+        });
+    });
+  }
 });
 
 /*************************************************

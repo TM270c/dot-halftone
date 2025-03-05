@@ -265,12 +265,10 @@
     .panel-section h3 + * {
       margin-top: 8px;
     }
-    /* Flex container for the button group */
+    /* Flex container for button groups */
     .button-group {
       display: flex;
-      justify-content: center;
       gap: 10px;
-      margin-top: 10px;
     }
   </style>
 </head>
@@ -287,7 +285,11 @@
         <button id="loadVideoUrls" class="btn-uniform">Load Videos</button>
       </div>
     </div>
-    <button id="exportSVG" class="btn-uniform">Export SVG</button>
+    <!-- Group Share and Export buttons together -->
+    <div class="button-group">
+      <button id="shareBtn" class="btn-uniform">Share</button>
+      <button id="exportSVG" class="btn-uniform">Export SVG</button>
+    </div>
   </div>
 
   <div class="main-container">
@@ -337,7 +339,6 @@
           <button id="swapMedia" class="btn-uniform">Swap Input</button>
           <button id="randomize" class="btn-uniform">Randomize</button>
           <button id="reset" class="btn-uniform">Reset</button>
-
         </div>
       </div>
       <!-- Image Adjustments Section with Divider -->
