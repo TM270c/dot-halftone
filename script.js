@@ -895,7 +895,6 @@ function updateSettingsCode() {
  * DOMContentLoaded & Query Parameter Handling + Share Button
  *************************************************/
 document.addEventListener('DOMContentLoaded', () => {
-  // Check for query parameters and decode settings if present
   const params = new URLSearchParams(window.location.search);
   if (params.has('settings')) {
     const code = params.get('settings');
@@ -908,6 +907,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (params.has('color')) {
     const colorUrl = params.get('color');
     document.getElementById('colorVideoUrl').value = colorUrl;
+  }
+  
+  // Automatically load videos if scale or color parameters are present
+  if (params.has('scale') || params.has('color')) {
+    loadVideoUrlsBtn.click();
   }
   
   const updateIDs = ['brightness', 'contrast', 'gamma', 'smoothing', 'cellSize', 'dotScale', 'hue'];
